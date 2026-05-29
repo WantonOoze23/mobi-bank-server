@@ -1,6 +1,11 @@
 ktor:
   deployment:
-    port: 8080
+    port: 8081
   application:
     modules:
+      - com.mobibank.plugins.KoinKt.configureDI
+      - ua.mobibank.plugins.DatabasesKt.configureDatabases
+      - ua.mobibank.plugins.SecutityKt.configureSecurity
+      - ua.mobibank.plugins.SerializationKt.configSerialization
+
       - ua.mobibank.plugins.RoutingKt.configureRouting

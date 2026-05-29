@@ -14,6 +14,6 @@ data class RegisterRequest(
 
 @Serializable
 data class LoginRequest(
-    val phone: String,
+    val login: String,
     val password: String
 )

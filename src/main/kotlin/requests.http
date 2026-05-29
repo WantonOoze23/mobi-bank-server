@@ -1,0 +1,48 @@
+### 2. Авторизація (вхід за телефоном)
+POST http://0.0.0.0:8081/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "login": "+380671234567",
+  "password": "SuperSecretPassword1"
+}
+
+> {%
+    client.test("Успішний статус", function() {
+        client.assert(response.status === 200, "Очікувався статус 200 OK");
+    });
+
+    client.test("Наявність токена", function() {
+        client.assert(response.body.token !== undefined, "Токен не знайдено у відповіді");
+    });
+
+    // Зберігаємо токен у глобальну змінну для наступних запитів
+    if (response.body.token) {
+        client.global.set("auth_token", response.body.token);
+        client.log("Токен успішно збережено!");
+    }
+%}
+
+### 3. Авторизація (вхід за поштою)
+POST http://0.0.0.0:8081/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "login": "alex@example.com",
+  "password": "SuperSecretPassword1"
+}
+
+> {%
+    client.test("Успішний статус", function() {
+        client.assert(response.status === 200, "Очікувався статус 200 OK");
+    });
+
+    client.test("Наявність токена", function() {
+        client.assert(response.body.token !== undefined, "Токен не знайдено у відповіді");
+    });
+
+    if (response.body.token) {
+        client.global.set("auth_token", response.body.token);
+        client.log("Токен успішно збережено!");
+    }
+%}

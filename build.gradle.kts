@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(ktorLibs.plugins.ktor)
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.3.21"
+    kotlin("plugin.serialization") version "2.3.21"
 }
 
 group = "ua.mobibank"
@@ -24,6 +24,8 @@ dependencies {
     implementation(libs.exposed.core)
     implementation(libs.exposed.jdbc)
     implementation(libs.exposed.dao)
+    implementation(libs.koin.ktor)
+    implementation(libs.koin.logger.slf4j)
     implementation(libs.exposed.java.time)
     implementation(libs.postgresql)
     implementation(libs.hikaricp)
