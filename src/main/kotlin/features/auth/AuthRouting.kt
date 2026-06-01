@@ -17,7 +17,7 @@ fun Route.authRouting(authService: AuthService) {
                 val result = authService.register(request)
 
                 if(result.isSuccess){
-                    call.respond(HttpStatusCode.Created, mapOf("token" to result.getOrNull()!!))
+                    call.respond(HttpStatusCode.Created, result.getOrNull()!!)
                 } else {
                     call.respond(HttpStatusCode.BadRequest, mapOf("error" to result.exceptionOrNull()!!.message!!))
                 }
@@ -33,7 +33,7 @@ fun Route.authRouting(authService: AuthService) {
                 val result = authService.login(request)
 
                 if(result.isSuccess){
-                    call.respond(HttpStatusCode.OK, mapOf("token" to result.getOrNull()!!))
+                    call.respond(HttpStatusCode.OK, result.getOrNull()!!)
                 } else {
                     call.respond(HttpStatusCode.BadRequest, mapOf("error" to result.exceptionOrNull()!!.message!!))
                 }

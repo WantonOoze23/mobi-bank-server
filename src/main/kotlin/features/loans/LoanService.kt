@@ -20,10 +20,9 @@ class LoanService(private val repository: LoanRepository) {
         val userId = UUID.fromString(userIdString)
         val accountId = UUID.fromString(request.accountId)
 
-        val interestRate = 5.0 // 5%
+        val interestRate = 5.0
         val totalToRepay = request.amount + (request.amount * interestRate / 100)
 
-        // Встановлюємо дату погашення (+30 днів)
         val dueDate = LocalDate.now().plusDays(30).format(DateTimeFormatter.ISO_DATE)
 
         return try {

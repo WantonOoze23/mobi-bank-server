@@ -1,13 +1,19 @@
+
+
 ### 2. Авторизація (вхід за телефоном)
-POST http://0.0.0.0:8081/api/v1/auth/login
+POST http://127.0.0.1:8081/api/v1/auth/login
 Content-Type: application/json
 
 {
-  "login": "+380671234567",
-  "password": "SuperSecretPassword1"
+  "login": "+380501234567",
+  "password": "SecurePassword123"
 }
 
+
+
 > {%
+    client.global.set("auth_token", response.body.token);
+
     client.test("Успішний статус", function() {
         client.assert(response.status === 200, "Очікувався статус 200 OK");
     });
@@ -24,12 +30,12 @@ Content-Type: application/json
 %}
 
 ### 3. Авторизація (вхід за поштою)
-POST http://0.0.0.0:8081/api/v1/auth/login
+POST http://127.0.0.1:8081/api/v1/auth/login
 Content-Type: application/json
 
 {
-  "login": "alex@example.com",
-  "password": "SuperSecretPassword1"
+  "login": "ivan@example.com",
+  "password": "SecurePassword123"
 }
 
 > {%

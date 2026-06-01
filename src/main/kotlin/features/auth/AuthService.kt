@@ -4,6 +4,7 @@ import com.mobibank.features.auth.AuthRepository
 import com.mobibank.features.auth.models.LoginRequest
 import com.mobibank.features.auth.models.RegisterRequest
 import com.mobibank.features.auth.models.UsersTable
+import features.auth.models.AuthResponse
 import org.mindrot.jbcrypt.BCrypt
 import ua.mobibank.plugins.JwtConfig
 import kotlin.uuid.ExperimentalUuidApi
@@ -11,7 +12,7 @@ import kotlin.uuid.ExperimentalUuidApi
 class AuthService(private val repository: AuthRepository) {
 
     @OptIn(ExperimentalUuidApi::class)
-    suspend fun register(request: RegisterRequest) : Result<String>{
+    suspend fun register(request: RegisterRequest) : Result<AuthResponse>{
         if(repository.getUserByLogin(request.email) != null) throw Exception("User with this email or phone number already exists")
 
         val passwordHash = BCrypt.hashpw(request.password, BCrypt.gensalt())
@@ -23,14 +24,14 @@ class AuthService(private val repository: AuthRepository) {
             val userId = userRow!![UsersTable.id].toString()
 
             val token = JwtConfig.generateToken(userId)
-            Result.success(token)
+            Result.success(AuthResponse(token = token, userId = userId))
         } else {
             Result.failure(Exception("Error creating user"))
         }
     }
 
     @OptIn(ExperimentalUuidApi::class)
-    suspend fun login(request: LoginRequest) : Result<String>{
+    suspend fun login(request: LoginRequest) : Result<AuthResponse>{
         val userRow = repository.getUserByLogin(request.login) ?: return Result.failure(Exception("User not found"))
 
         val passwordHash = userRow[UsersTable.passwordHash]
@@ -40,7 +41,7 @@ class AuthService(private val repository: AuthRepository) {
         return if(isPasswordValid){
             val userId = userRow[UsersTable.id].toString()
             val token = JwtConfig.generateToken(userId)
-            Result.success(token)
+            Result.success(AuthResponse(token = token, userId = userId))
         } else{
             Result.failure(Exception("Invalid password"))
         }

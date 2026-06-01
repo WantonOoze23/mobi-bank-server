@@ -4,11 +4,14 @@ import com.mobibank.features.auth.models.UsersTable
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import features.accounts.models.AccountsTable
+import features.loans.models.LoansTable
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import ua.mobibank.features.deposits.models.DepositsTable
+import ua.mobibank.features.transactions.model.TransactionsTable
 
 object DatabaseFactory {
 
@@ -17,7 +20,7 @@ object DatabaseFactory {
         Database.connect(pool)
 
         transaction {
-            SchemaUtils.create(UsersTable, AccountsTable)
+            SchemaUtils.create(UsersTable, AccountsTable, LoansTable, DepositsTable, TransactionsTable)
         }
     }
 
