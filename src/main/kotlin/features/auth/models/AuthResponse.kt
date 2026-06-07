@@ -8,3 +8,13 @@ data class AuthResponse(
     val userId: String? = null,
     val message: String? = null
 )
+
+@Serializable
+data class UserProfileResponse(
+    val firstName: String,
+    val lastName: String,
+    val middleName: String?,
+    val phone: String,
+    val email: String
+)
+

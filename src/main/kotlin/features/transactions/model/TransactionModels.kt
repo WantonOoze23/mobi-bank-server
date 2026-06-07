@@ -13,6 +13,7 @@ data class TransferRequest(
 data class TransactionResponse(
     val id: String,
     val amount: Double,
+    val currency: String,
     val type: String,
     val timestamp: String,
     val counterpartyCard: String?

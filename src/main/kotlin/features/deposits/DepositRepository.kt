@@ -55,6 +55,39 @@ class DepositRepository {
         }
     }
 
+    suspend fun closeDeposit(userId: UUID, depositId: UUID, accountId: UUID): Boolean {
+        return dbQuery {
+            val deposit = DepositsTable.selectAll().where {
+                (DepositsTable.id eq depositId.toKotlinUuid()) and (DepositsTable.userId eq userId.toKotlinUuid())
+            }.singleOrNull() ?: throw Exception("Депозит не знайдено")
+
+            val status = deposit[DepositsTable.status]
+            if (status == "CLOSED") throw Exception("Цей депозит вже закрито")
+
+            val amount = deposit[DepositsTable.amount]
+            val interestRate = deposit[DepositsTable.interestRate]
+
+            val profit = amount * (interestRate / 100.toBigDecimal())
+            val totalToReturn = amount + profit
+
+            val account = AccountsTable.selectAll().where {
+                (AccountsTable.id eq accountId.toKotlinUuid()) and (AccountsTable.userId eq userId.toKotlinUuid())
+            }.singleOrNull() ?: throw Exception("Картку для зарахування не знайдено або вона вам не належить")
+
+            val currentBalance = account[AccountsTable.balance]
+
+            AccountsTable.update({ AccountsTable.id eq accountId.toKotlinUuid() }) {
+                it[balance] = currentBalance + totalToReturn
+            }
+
+            val updatedRows = DepositsTable.update({ DepositsTable.id eq depositId.toKotlinUuid() }) {
+                it[DepositsTable.status] = "CLOSED"
+            }
+
+            updatedRows > 0
+        }
+    }
+
     suspend fun getUserDeposits(userId: UUID): List<ResultRow> {
         return dbQuery {
             DepositsTable.selectAll().where { DepositsTable.userId eq userId.toKotlinUuid() }.toList()

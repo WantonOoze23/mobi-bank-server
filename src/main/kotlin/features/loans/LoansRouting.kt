@@ -1,6 +1,7 @@
 package features.loans
 
 import features.loans.models.ApplyLoanRequest
+import features.loans.models.RepayLoanRequest
 import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
@@ -22,6 +23,24 @@ fun Route.loansRouting(loanService: LoanService) {
 
                     if (result.isSuccess) {
                         call.respond(HttpStatusCode.Created, result.getOrNull()!!)
+                    } else {
+                        call.respond(HttpStatusCode.BadRequest, mapOf("error" to result.exceptionOrNull()?.message))
+                    }
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Невірний формат даних"))
+                }
+            }
+
+            post("/repay") {
+                try {
+                    val principal = call.principal<JWTPrincipal>()
+                    val userId = principal!!.payload.getClaim("userId").asString()
+                    val request = call.receive<RepayLoanRequest>()
+
+                    val result = loanService.repayLoan(userId, request)
+
+                    if (result.isSuccess) {
+                        call.respond(HttpStatusCode.OK, mapOf("message" to result.getOrNull()!!))
                     } else {
                         call.respond(HttpStatusCode.BadRequest, mapOf("error" to result.exceptionOrNull()?.message))
                     }

@@ -10,6 +10,7 @@ object TransactionsTable : Table("transactions") {
     val senderAccountId = reference("sender_account_id", AccountsTable.id).nullable()
     val receiverAccountId = reference("receiver_account_id", AccountsTable.id).nullable()
     val amount = decimal("amount", 15, 2)
+    val currency = varchar("currency", 10).default("UAH")
     val timestamp = varchar("timestamp", 30)
 
     override val primaryKey = PrimaryKey(id)

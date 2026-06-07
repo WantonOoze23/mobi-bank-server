@@ -32,6 +32,7 @@ class TransactionService(private val repository: TransactionRepository) {
             val response = TransactionResponse(
                 id = row[TransactionsTable.id].toJavaUuid().toString(),
                 amount = row[TransactionsTable.amount].toDouble(),
+                currency = row[TransactionsTable.currency],
                 type = "EXPENSE",
                 timestamp = row[TransactionsTable.timestamp],
                 counterpartyCard = request.receiverCardNumber
@@ -47,15 +48,16 @@ class TransactionService(private val repository: TransactionRepository) {
         val rows = repository.getAccountTransactions(accountId)
 
         val allTransactions = rows.map { row ->
-            val senderId = row[TransactionsTable.senderAccountId]
-            val receiverId = row[TransactionsTable.receiverAccountId]
+            val senderIdString = row[TransactionsTable.senderAccountId].toString()
+            val receiverIdString = row[TransactionsTable.receiverAccountId].toString()
 
-            val isExpense = senderId == accountId
+            val isExpense = senderIdString == accountIdString
             val type = if (isExpense) "EXPENSE" else "INCOME"
 
             TransactionResponse(
                 id = row[TransactionsTable.id].toString(),
                 amount = row[TransactionsTable.amount].toDouble(),
+                currency = row[TransactionsTable.currency],
                 type = type,
                 timestamp = row[TransactionsTable.timestamp],
                 counterpartyCard = null

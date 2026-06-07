@@ -3,10 +3,13 @@ package ua.mobibank.features.auth
 import com.mobibank.features.auth.AuthRepository
 import com.mobibank.features.auth.models.LoginRequest
 import com.mobibank.features.auth.models.RegisterRequest
+import com.mobibank.features.auth.models.UpdateProfileRequest
 import com.mobibank.features.auth.models.UsersTable
 import features.auth.models.AuthResponse
+import features.auth.models.UserProfileResponse
 import org.mindrot.jbcrypt.BCrypt
 import ua.mobibank.plugins.JwtConfig
+import java.util.UUID
 import kotlin.uuid.ExperimentalUuidApi
 
 class AuthService(private val repository: AuthRepository) {
@@ -28,6 +31,21 @@ class AuthService(private val repository: AuthRepository) {
         } else {
             Result.failure(Exception("Error creating user"))
         }
+    }
+
+    suspend fun getProfile(userIdString: String): UserProfileResponse? {
+        val row = repository.getUserById(UUID.fromString(userIdString)) ?: return null
+        return UserProfileResponse(
+            firstName = row[UsersTable.firstName],
+            lastName = row[UsersTable.lastName],
+            middleName = row[UsersTable.middleName],
+            phone = row[UsersTable.phone],
+            email = row[UsersTable.email]
+        )
+    }
+
+    suspend fun updateProfile(userIdString: String, request: UpdateProfileRequest): Boolean {
+        return repository.updateProfile(UUID.fromString(userIdString), request)
     }
 
     @OptIn(ExperimentalUuidApi::class)

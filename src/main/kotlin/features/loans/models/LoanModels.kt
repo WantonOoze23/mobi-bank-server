@@ -9,6 +9,12 @@ data class ApplyLoanRequest(
 )
 
 @Serializable
+data class RepayLoanRequest(
+    val loanId: String,
+    val accountId: String
+)
+
+@Serializable
 data class LoanResponse(
     val id: String,
     val amount: Double,

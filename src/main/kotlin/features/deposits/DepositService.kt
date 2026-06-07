@@ -1,6 +1,7 @@
 package ua.mobibank.features.deposits
 
 import org.jetbrains.exposed.v1.core.ResultRow
+import ua.mobibank.features.deposits.models.CloseDepositRequest
 import ua.mobibank.features.deposits.models.DepositResponse
 import ua.mobibank.features.deposits.models.DepositsTable
 import ua.mobibank.features.deposits.models.OpenDepositRequest
@@ -49,6 +50,23 @@ class DepositService(private val repository: DepositRepository) {
         val userId = UUID.fromString(userIdString)
         val rows = repository.getUserDeposits(userId)
         return rows.map { mapRowToResponse(it) }
+    }
+
+    suspend fun closeDeposit(userIdString: String, request: CloseDepositRequest): Result<String> {
+        val userId = UUID.fromString(userIdString)
+        val depositId = UUID.fromString(request.depositId)
+        val accountId = UUID.fromString(request.accountId)
+
+        return try {
+            val success = repository.closeDeposit(userId, depositId, accountId)
+            if (success) {
+                Result.success("Депозит успішно закрито! Кошти зараховано на картку.")
+            } else {
+                Result.failure(Exception("Не вдалося закрити депозит"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     @OptIn(ExperimentalUuidApi::class)

@@ -10,6 +10,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
+import ua.mobibank.features.deposits.models.CloseDepositRequest
 import ua.mobibank.features.deposits.models.OpenDepositRequest
 
 fun Route.depositsRouting(depositService: DepositService) {
@@ -31,6 +32,24 @@ fun Route.depositsRouting(depositService: DepositService) {
                     }
                 } catch (e: Exception) {
                     call.respond(HttpStatusCode.BadRequest, mapOf("error" to e.message))
+                }
+            }
+
+            post("/close") {
+                try {
+                    val principal = call.principal<JWTPrincipal>()
+                    val userId = principal!!.payload.getClaim("userId").asString()
+                    val request = call.receive<CloseDepositRequest>()
+
+                    val result = depositService.closeDeposit(userId, request)
+
+                    if (result.isSuccess) {
+                        call.respond(HttpStatusCode.OK, mapOf("message" to result.getOrNull()!!))
+                    } else {
+                        call.respond(HttpStatusCode.BadRequest, mapOf("error" to result.exceptionOrNull()?.message))
+                    }
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Невірний формат даних"))
                 }
             }
 

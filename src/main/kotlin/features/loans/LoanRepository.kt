@@ -51,4 +51,38 @@ class LoanRepository {
             LoansTable.selectAll().where { LoansTable.userId eq userId.toKotlinUuid() }.toList()
         }
     }
+
+    suspend fun repayLoan(userId: UUID, loanId: UUID, accountId: UUID): Boolean {
+        return dbQuery {
+            val loan = LoansTable.selectAll().where {
+                (LoansTable.id eq loanId.toKotlinUuid()) and (LoansTable.userId eq userId.toKotlinUuid())
+            }.singleOrNull() ?: throw Exception("Кредит не знайдено")
+
+            val status = loan[LoansTable.status]
+            if (status == "PAID") throw Exception("Цей кредит вже повністю погашено")
+
+            val remainingAmount = loan[LoansTable.remainingAmount]
+
+            val account = AccountsTable.selectAll().where {
+                (AccountsTable.id eq accountId.toKotlinUuid()) and (AccountsTable.userId eq userId.toKotlinUuid())
+            }.singleOrNull() ?: throw Exception("Картку не знайдено або вона вам не належить")
+
+            val currentBalance = account[AccountsTable.balance]
+
+            if (currentBalance < remainingAmount) {
+                throw Exception("Недостатньо коштів на балансі для погашення (Потрібно: $remainingAmount)")
+            }
+
+            AccountsTable.update({ AccountsTable.id eq accountId.toKotlinUuid() }) {
+                it[balance] = currentBalance - remainingAmount
+            }
+
+            val updatedRows = LoansTable.update({ LoansTable.id eq loanId.toKotlinUuid() }) {
+                it[LoansTable.remainingAmount] = 0.0.toBigDecimal()
+                it[LoansTable.status] = "PAID"
+            }
+
+            updatedRows > 0
+        }
+    }
 }

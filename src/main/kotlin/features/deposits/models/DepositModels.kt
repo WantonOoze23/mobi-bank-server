@@ -10,6 +10,12 @@ data class OpenDepositRequest(
 )
 
 @Serializable
+data class CloseDepositRequest(
+    val depositId: String,
+    val accountId: String
+)
+
+@Serializable
 data class DepositResponse(
     val id: String,
     val amount: Double,

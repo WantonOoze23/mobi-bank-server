@@ -3,6 +3,7 @@ package features.loans
 import features.loans.models.ApplyLoanRequest
 import features.loans.models.LoanResponse
 import features.loans.models.LoansTable
+import features.loans.models.RepayLoanRequest
 import org.jetbrains.exposed.v1.core.ResultRow
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -40,6 +41,23 @@ class LoanService(private val repository: LoanRepository) {
         val userId = UUID.fromString(userIdString)
         val rows = repository.getUserLoans(userId)
         return rows.map { mapRowToResponse(it) }
+    }
+
+    suspend fun repayLoan(userIdString: String, request: RepayLoanRequest): Result<String> {
+        val userId = UUID.fromString(userIdString)
+        val loanId = UUID.fromString(request.loanId)
+        val accountId = UUID.fromString(request.accountId)
+
+        return try {
+            val success = repository.repayLoan(userId, loanId, accountId)
+            if (success) {
+                Result.success("Кредит успішно погашено")
+            } else {
+                Result.failure(Exception("Помилка під час оновлення статусу кредиту"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     @OptIn(ExperimentalUuidApi::class)

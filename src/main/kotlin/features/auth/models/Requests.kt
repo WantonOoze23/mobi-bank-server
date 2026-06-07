@@ -17,3 +17,11 @@ data class LoginRequest(
     val login: String,
     val password: String
 )
+
+@Serializable
+data class UpdateProfileRequest(
+    val firstName: String,
+    val lastName: String,
+    val middleName: String?,
+    val email: String
+)
