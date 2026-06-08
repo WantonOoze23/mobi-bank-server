@@ -49,6 +49,14 @@ class AuthRepository {
         }
     }
 
+    suspend fun updatePassword(userId: UUID, newPasswordHash: String): Boolean {
+        return dbQuery {
+            UsersTable.update({ UsersTable.id eq userId.toKotlinUuid() }) {
+                it[passwordHash] = newPasswordHash
+            } > 0
+        }
+    }
+
     suspend fun getUserByLogin(login: String): ResultRow? {
         return dbQuery {
             UsersTable.selectAll().where { (UsersTable.phone eq login) or (UsersTable.email eq login)}.singleOrNull()

@@ -1,5 +1,6 @@
 package ua.mobibank.features.accounts
 
+import com.mobibank.features.auth.models.ChangePasswordRequest
 import com.mobibank.features.auth.models.LoginRequest
 import com.mobibank.features.auth.models.RegisterRequest
 import com.mobibank.features.auth.models.UpdateProfileRequest
@@ -56,19 +57,44 @@ fun Route.authRouting(authService: AuthService) {
                 if (profile != null) {
                     call.respond(HttpStatusCode.OK, profile)
                 } else {
-                    // Якщо користувача немає в базі, повертаємо 404 з текстом
                     call.respond(HttpStatusCode.NotFound, mapOf("error" to "Користувача не знайдено"))
                 }
             }
 
             put("/update") {
-                val principal = call.principal<JWTPrincipal>()
-                val userId = principal!!.payload.getClaim("userId").asString()
-                val request = call.receive<UpdateProfileRequest>()
-                val success = authService.updateProfile(userId, request)
+                try {
+                    val principal = call.principal<JWTPrincipal>()
+                    val userId = principal!!.payload.getClaim("userId").asString()
+                    val request = call.receive<UpdateProfileRequest>()
 
-                if (success) call.respond(HttpStatusCode.OK, mapOf("message" to "Оновлено"))
-                else call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Помилка оновлення"))
+                    val result = authService.updateProfile(userId, request)
+
+                    if (result.isSuccess) {
+                        call.respond(HttpStatusCode.OK, mapOf("message" to result.getOrNull()!!))
+                    } else {
+                        call.respond(HttpStatusCode.BadRequest, mapOf("error" to result.exceptionOrNull()?.message))
+                    }
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Невірний формат даних"))
+                }
+            }
+
+            put("/password") {
+                try {
+                    val principal = call.principal<JWTPrincipal>()
+                    val userId = principal!!.payload.getClaim("userId").asString()
+                    val request = call.receive<ChangePasswordRequest>()
+
+                    val result = authService.changePassword(userId, request)
+
+                    if (result.isSuccess) {
+                        call.respond(HttpStatusCode.OK, mapOf("message" to result.getOrNull()!!))
+                    } else {
+                        call.respond(HttpStatusCode.BadRequest, mapOf("error" to result.exceptionOrNull()?.message))
+                    }
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Невірний формат даних"))
+                }
             }
         }
     }

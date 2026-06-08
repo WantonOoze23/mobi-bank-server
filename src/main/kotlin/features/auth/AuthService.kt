@@ -1,6 +1,7 @@
 package ua.mobibank.features.auth
 
 import com.mobibank.features.auth.AuthRepository
+import com.mobibank.features.auth.models.ChangePasswordRequest
 import com.mobibank.features.auth.models.LoginRequest
 import com.mobibank.features.auth.models.RegisterRequest
 import com.mobibank.features.auth.models.UpdateProfileRequest
@@ -44,8 +45,34 @@ class AuthService(private val repository: AuthRepository) {
         )
     }
 
-    suspend fun updateProfile(userIdString: String, request: UpdateProfileRequest): Boolean {
-        return repository.updateProfile(UUID.fromString(userIdString), request)
+    suspend fun updateProfile(userIdString: String, request: UpdateProfileRequest): Result<String> {
+        val userId = UUID.fromString(userIdString)
+        val userRow = repository.getUserById(userId) ?: return Result.failure(Exception("Користувача не знайдено"))
+
+        val passwordHash = userRow[UsersTable.passwordHash]
+
+        if (!BCrypt.checkpw(request.currentPassword, passwordHash)) {
+            return Result.failure(Exception("Невірний пароль підтвердження"))
+        }
+
+        val success = repository.updateProfile(userId, request)
+        return if (success) Result.success("Дані успішно оновлено") else Result.failure(Exception("Помилка оновлення"))
+    }
+
+    suspend fun changePassword(userIdString: String, request: ChangePasswordRequest): Result<String> {
+        val userId = UUID.fromString(userIdString)
+        val userRow = repository.getUserById(userId) ?: return Result.failure(Exception("Користувача не знайдено"))
+
+        val passwordHash = userRow[UsersTable.passwordHash]
+
+        if (!BCrypt.checkpw(request.oldPassword, passwordHash)) {
+            return Result.failure(Exception("Невірний старий пароль"))
+        }
+
+        val newHash = BCrypt.hashpw(request.newPassword, BCrypt.gensalt())
+        val success = repository.updatePassword(userId, newHash)
+
+        return if (success) Result.success("Пароль успішно змінено") else Result.failure(Exception("Помилка зміни пароля"))
     }
 
     @OptIn(ExperimentalUuidApi::class)
