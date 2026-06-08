@@ -18,3 +18,9 @@ data class TransactionResponse(
     val timestamp: String,
     val counterpartyCard: String?
 )
+
+@Serializable
+data class TopUpRequest(
+    val cardNumber: String,
+    val amount: Double
+)

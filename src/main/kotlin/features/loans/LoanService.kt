@@ -17,6 +17,9 @@ class LoanService(private val repository: LoanRepository) {
         if (request.amount <= 0) {
             return Result.failure(Exception("Сума кредиту має бути більшою за нуль"))
         }
+        if (request.termInDays <= 0) {
+            return Result.failure(Exception("Термін кредиту має бути більшим за нуль"))
+        }
 
         val userId = UUID.fromString(userIdString)
         val accountId = UUID.fromString(request.accountId)
@@ -24,7 +27,7 @@ class LoanService(private val repository: LoanRepository) {
         val interestRate = 5.0
         val totalToRepay = request.amount + (request.amount * interestRate / 100)
 
-        val dueDate = LocalDate.now().plusDays(30).format(DateTimeFormatter.ISO_DATE)
+        val dueDate = LocalDate.now().plusDays(request.termInDays.toLong()).format(DateTimeFormatter.ISO_DATE)
 
         return try {
             val row = repository.createLoanAndFundAccount(
@@ -66,6 +69,7 @@ class LoanService(private val repository: LoanRepository) {
             id = row[LoansTable.id].toJavaUuid().toString(),
             amount = row[LoansTable.amount].toDouble(),
             remainingAmount = row[LoansTable.remainingAmount].toDouble(),
+            currency = row[LoansTable.currency],
             dueDate = row[LoansTable.dueDate],
             status = row[LoansTable.status]
         )

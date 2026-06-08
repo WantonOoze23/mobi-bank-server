@@ -4,8 +4,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ApplyLoanRequest(
-    val accountId: String, // ID картки, куди зарахувати гроші
-    val amount: Double
+    val accountId: String,
+    val amount: Double,
+    val termInDays: Int
 )
 
 @Serializable
@@ -19,6 +20,7 @@ data class LoanResponse(
     val id: String,
     val amount: Double,
     val remainingAmount: Double,
+    val currency: String, 
     val dueDate: String,
     val status: String
 )

@@ -1,6 +1,7 @@
 package ua.mobibank.features.transactions
 
 import features.transactions.TransactionRepository
+import ua.mobibank.features.transactions.model.TopUpRequest
 import ua.mobibank.features.transactions.model.TransactionResponse
 import ua.mobibank.features.transactions.model.TransactionsTable
 import ua.mobibank.features.transactions.model.TransferRequest
@@ -68,6 +69,19 @@ class TransactionService(private val repository: TransactionRepository) {
             "EXPENSE" -> allTransactions.filter { it.type == "EXPENSE" }
             "INCOME" -> allTransactions.filter { it.type == "INCOME" }
             else -> allTransactions
+        }
+    }
+
+    suspend fun topUpCard(request: TopUpRequest): Result<String> {
+        if (request.amount <= 0) return Result.failure(Exception("Сума поповнення має бути більшою за нуль"))
+
+        val timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME)
+
+        return try {
+            repository.topUpAccount(request.cardNumber, request.amount, timestamp)
+            Result.success("Картку успішно поповнено на ${request.amount}")
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 }

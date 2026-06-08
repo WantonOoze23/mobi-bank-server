@@ -1,0 +1,7 @@
+POST http://127.0.0.1:8081/api/v1/transactions/topup
+Content-Type: application/json
+
+{
+    "cardNumber": "4149940301457096",
+    "amount": 10000.0
+}

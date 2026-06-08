@@ -11,6 +11,8 @@ import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
 import ua.mobibank.features.transactions.model.TransactionsTable
+import ua.mobibank.СurrancyExchangeRate
+import ua.mobibank.СurrancyExchangeRate.exchangeRates
 import java.math.RoundingMode
 import java.util.UUID
 import kotlin.uuid.ExperimentalUuidApi
@@ -18,12 +20,6 @@ import kotlin.uuid.toKotlinUuid
 
 @OptIn(ExperimentalUuidApi::class)
 class TransactionRepository {
-
-    private val exchangeRates = mapOf(
-        "UAH" to 1.0,
-        "USD" to 40.0, // 1 USD = 40 UAH
-        "EUR" to 43.0  // 1 EUR = 43 UAH
-    )
 
     private fun convertCurrency(amount: Double, fromCurrency: String, toCurrency: String): Double {
         if (fromCurrency == toCurrency) return amount
@@ -51,7 +47,7 @@ class TransactionRepository {
             }.singleOrNull() ?: throw Exception("Картку відправника не знайдено")
 
             val senderBalance = senderAccount[AccountsTable.balance]
-            val senderCurrency = senderAccount[AccountsTable.currency] // Валюта відправника
+            val senderCurrency = senderAccount[AccountsTable.currency]
 
             if (senderBalance < amount.toBigDecimal()) {
                 throw Exception("Недостатньо коштів на балансі")
@@ -97,6 +93,36 @@ class TransactionRepository {
                 (TransactionsTable.senderAccountId eq accountId.toKotlinUuid()) or
                         (TransactionsTable.receiverAccountId eq accountId.toKotlinUuid())
             }.orderBy(TransactionsTable.timestamp to SortOrder.DESC).toList()
+        }
+    }
+
+    suspend fun topUpAccount(
+        cardNumber: String,
+        amount: Double,
+        timestamp: String
+    ): Boolean {
+        return dbQuery {
+            val receiverAccount = AccountsTable.selectAll().where {
+                AccountsTable.cardNumber eq cardNumber
+            }.singleOrNull() ?: throw Exception("Картку з таким номером не знайдено")
+
+            val receiverAccountId = receiverAccount[AccountsTable.id]
+            val currentBalance = receiverAccount[AccountsTable.balance]
+            val accountCurrency = receiverAccount[AccountsTable.currency]
+
+            AccountsTable.update({ AccountsTable.id eq receiverAccountId }) {
+                it[balance] = currentBalance + amount.toBigDecimal()
+            }
+
+            TransactionsTable.insert {
+                it[TransactionsTable.senderAccountId] = null // Зовнішнє поповнення
+                it[TransactionsTable.receiverAccountId] = receiverAccountId
+                it[TransactionsTable.amount] = amount.toBigDecimal()
+                it[TransactionsTable.currency] = accountCurrency
+                it[TransactionsTable.timestamp] = timestamp
+            }
+
+            true
         }
     }
 }

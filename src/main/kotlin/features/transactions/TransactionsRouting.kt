@@ -10,6 +10,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
+import ua.mobibank.features.transactions.model.TopUpRequest
 import ua.mobibank.features.transactions.model.TransferRequest
 
 fun Route.transactionsRouting(transactionService: TransactionService) {
@@ -45,6 +46,23 @@ fun Route.transactionsRouting(transactionService: TransactionService) {
                 } catch (e: Exception) {
                     call.respond(HttpStatusCode.BadRequest, mapOf("error" to e.message))
                 }
+            }
+        }
+    }
+
+    route("/api/v1/transactions") {
+        post("/topup") {
+            try {
+                val request = call.receive<TopUpRequest>()
+                val result = transactionService.topUpCard(request)
+
+                if (result.isSuccess) {
+                    call.respond(HttpStatusCode.OK, mapOf("message" to result.getOrNull()!!))
+                } else {
+                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to result.exceptionOrNull()?.message))
+                }
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Невірний формат даних"))
             }
         }
     }
