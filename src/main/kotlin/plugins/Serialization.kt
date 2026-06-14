@@ -9,9 +9,9 @@ import kotlinx.serialization.json.Json
 fun Application.configSerialization(){
     install(ContentNegotiation) {
         json(Json {
-            prettyPrint = true // Робить JSON читабельним (з відступами)
+            prettyPrint = true
             isLenient = true
-            ignoreUnknownKeys = true // Ігнорує зайві поля, якщо клієнт передасть щось зайве
+            ignoreUnknownKeys = true
         })
     }
 }
